@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>E-Commerce Analytics · Product Intelligence Dashboard</title>
+  <meta name="description" content="Interactive e-commerce product analytics dashboard powered by 2023-2024 global e-commerce data — KPIs, revenue trends, profitability, product value and business insights."/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2220%22 fill=%22%2306091a%22/><rect x=%2220%22 y=%2250%22 width=%2215%22 height=%2230%22 rx=%224%22 fill=%22%238b5cf6%22/><rect x=%2245%22 y=%2230%22 width=%2215%22 height=%2250%22 rx=%224%22 fill=%22%2306b6d4%22/><rect x=%2270%22 y=%2215%22 width=%2215%22 height=%2265%22 rx=%224%22 fill=%22%2310b981%22/></svg>">
+  <link rel="stylesheet" href="/static/css/styles.css"/>
+</head>
+<body>
+
+<!-- Floating ambient orbs -->
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<!-- Scroll Progress Bar -->
+<div id="scrollProgress"></div>
+
+<!-- ════════ SIDEBAR ════════ -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon-wrap">📊</div>
+    <div class="logo-text">
+      <b>EcomStore</b>
+      <small>Analytics</small>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Dashboard</div>
+    <a href="#overview"       class="nav-item active" data-section="overview">      <span class="nav-icon">🏠</span><span>Overview</span></a>
+    <a href="#trends"         class="nav-item"        data-section="trends">        <span class="nav-icon">📈</span><span>Sales Trends</span></a>
+
+    <div class="nav-section-label" style="margin-top:8px">Analysis</div>
+    <a href="#profitability"  class="nav-item"        data-section="profitability"> <span class="nav-icon">💰</span><span>Profitability</span></a>
+    <a href="#products"       class="nav-item"        data-section="products">      <span class="nav-icon">📦</span><span>Products</span></a>
+    <a href="#customers"      class="nav-item"        data-section="customers">     <span class="nav-icon">👥</span><span>Product Value</span></a>
+
+    <div class="nav-section-label" style="margin-top:8px">Explore</div>
+    <a href="#geography"      class="nav-item"        data-section="geography">     <span class="nav-icon">🌆</span><span>City Performance</span></a>
+    <a href="#shipping"       class="nav-item"        data-section="shipping">      <span class="nav-icon">🏷️</span><span>Discounts</span></a>
+    <a href="#insights"       class="nav-item"        data-section="insights">      <span class="nav-icon">✨</span><span>Insights</span><span class="nav-badge">AI</span></a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-footer-card">
+      <div class="data-badge"><span class="data-dot"></span>Live Dataset</div>
+      <div class="data-subtitle">2023–2024 · 1,000 products</div>
+    </div>
+  </div>
+</aside>
+
+<!-- ════════ MAIN ════════ -->
+<main class="main-content">
+
+  <!-- Top Header -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <button class="menu-toggle" id="menuToggle">☰</button>
+      <div>
+        <h1 class="page-title">E-Commerce Analytics</h1>
+        <p class="page-subtitle">
+          Global Dataset 2023–2024 · Product Intelligence
+          <span class="live-pill"><span class="live-dot"></span>Live</span>
+        </p>
+      </div>
+    </div>
+    <div class="filter-bar">
+      <div class="filter-group">
+        <label>Year</label>
+        <select id="filterYear">
+          <option value="all">All Years</option>
+          {% for y in years %}<option value="{{ y }}">{{ y }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Category</label>
+        <select id="filterCategory">
+          <option value="all">All Categories</option>
+          {% for c in categories %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+        </select>
+      </div>
+      <button class="btn-apply" id="applyFilters">Apply</button>
+      <button class="btn-reset" id="resetFilters">Reset</button>
+    </div>
+  </header>
+
+  <!-- Scrollable sections -->
+  <div class="sections-wrapper">
+
+    <!-- ── OVERVIEW ── -->
+    <section id="overview" class="section">
+      <div class="section-header">
+        <h2>📊 Overview</h2>
+        <span class="section-tag">Key Performance Indicators</span>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="kpi-grid" id="kpiGrid">
+        <div class="kpi-card" id="kpi-sales">
+          <div class="kpi-header">
+            <div class="kpi-label">Total Revenue</div>
+            <div class="kpi-icon-wrap">💵</div>
+          </div>
+          <div class="kpi-value" id="v-sales">—</div>
+          <div class="kpi-trend" id="t-sales"></div>
+        </div>
+        <div class="kpi-card" id="kpi-profit">
+          <div class="kpi-header">
+            <div class="kpi-label">Total Profit</div>
+            <div class="kpi-icon-wrap">💹</div>
+          </div>
+          <div class="kpi-value" id="v-profit">—</div>
+          <div class="kpi-trend" id="t-profit"></div>
+        </div>
+        <div class="kpi-card" id="kpi-margin">
+          <div class="kpi-header">
+            <div class="kpi-label">Profit Margin</div>
+            <div class="kpi-icon-wrap">📊</div>
+          </div>
+          <div class="kpi-value" id="v-margin">—</div>
+          <div class="kpi-trend" id="t-margin"></div>
+        </div>
+        <div class="kpi-card" id="kpi-orders">
+          <div class="kpi-header">
+            <div class="kpi-label">Units Sold</div>
+            <div class="kpi-icon-wrap">📦</div>
+          </div>
+          <div class="kpi-value" id="v-orders">—</div>
+          <div class="kpi-trend" id="t-orders"></div>
+        </div>
+        <div class="kpi-card" id="kpi-customers">
+          <div class="kpi-header">
+            <div class="kpi-label">Products</div>
+            <div class="kpi-icon-wrap">🏷️</div>
+          </div>
+          <div class="kpi-value" id="v-customers">—</div>
+          <div class="kpi-trend" id="t-customers"></div>
+        </div>
+        <div class="kpi-card" id="kpi-aov">
+          <div class="kpi-header">
+            <div class="kpi-label">Avg Rating</div>
+            <div class="kpi-icon-wrap">⭐</div>
+          </div>
+          <div class="kpi-value" id="v-aov">—</div>
+          <div class="kpi-trend" id="t-aov"></div>
+        </div>
+      </div>
+
+      <!-- YoY Comparison -->
+      <div class="card full-width">
+        <div class="card-header">
+          <h3>Year-over-Year Comparison</h3>
+          <span class="card-tag">Annual performance</span>
+        </div>
+        <div class="chart-container" style="height:320px">
+          <canvas id="yoyChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── SALES TRENDS ── -->
+    <section id="trends" class="section">
+      <div class="section-header">
+        <h2>📈 Sales Trends</h2>
+        <span class="section-tag">Monthly performance over time</span>
+      </div>
+      <div class="cards-row">
+        <div class="card flex-2">
+          <div class="card-header">
+            <h3>Revenue &amp; Profit Over Time</h3>
+            <span class="card-tag">Monthly</span>
+          </div>
+          <div class="chart-container" style="height:320px">
+            <canvas id="trendChart"></canvas>
+          </div>
+        </div>
+        <div class="card flex-1">
+          <div class="card-header">
+            <h3>Category Performance</h3>
+            <span class="card-tag">Revenue split</span>
+          </div>
+          <div class="chart-container" style="height:320px">
+            <canvas id="categoryDonut"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── PROFITABILITY ── -->
+    <section id="profitability" class="section">
+      <div class="section-header">
+        <h2>💰 Profitability Analysis</h2>
+        <span class="section-tag">Margins, discounts &amp; loss analysis</span>
+      </div>
+
+      <div class="stat-pills" id="profitPills"></div>
+
+      <div class="cards-row">
+        <div class="card flex-1">
+          <div class="card-header">
+            <h3>Sub-Category Profit</h3>
+            <span class="card-tag">Positive vs negative</span>
+          </div>
+          <div class="chart-container" style="height:380px">
+            <canvas id="subcatChart"></canvas>
+          </div>
+        </div>
+        <div class="card flex-1">
+          <div class="card-header">
+            <h3>Profit by Discount Band</h3>
+            <span class="card-tag">Discount impact</span>
+          </div>
+          <div class="chart-container" style="height:380px">
+            <canvas id="discountProfitChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="cards-row">
+        <div class="card flex-1">
+          <div class="card-header">
+            <h3>Discount vs Profit Scatter</h3>
+            <span class="card-tag">All products</span>
+          </div>
+          <div class="chart-container" style="height:300px">
+            <canvas id="scatterChart"></canvas>
+          </div>
+        </div>
+        <div class="card flex-1">
+          <div class="card-header">
+            <h3>Category Margin Breakdown</h3>
+            <span class="card-tag">Profit %</span>
+          </div>
+          <div class="chart-container" style="height:300px">
+            <canvas id="categoryMarginChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── PRODUCTS ── -->
+    <section id="products" class="section">
+      <div class="section-header">
+        <h2>📦 Products</h2>
+        <span class="section-tag">Top performers &amp; loss leaders</span>
+      </div>
+      <div class="cards-row">
+        <div class="card flex-2">
+          <div class="card-header">
+            <h3>Top 10 Products by Sales</h3>
+            <span class="card-tag">Revenue + Profit</span>
+          </div>
+          <div class="chart-container" style="height:340px">
+            <canvas id="topProductsChart"></canvas>
+          </div>
+        </div>
+        <div class="card flex-1">
+          <div class="card-header">
+            <h3>Top Margin Products</h3>
+            <span class="card-tag">Highest %</span>
+          </div>
+          <div class="chart-container" style="height:340px">
+            <canvas id="highMarginChart"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="card full-width">
+        <div class="card-header">
+          <h3>Worst Margin Products</h3>
+          <span class="card-tag loss-tag">⚠️ Loss leaders</span>
+        </div>
+        <div class="chart-container" style="height:280px">
+          <canvas id="lowMarginChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── PRODUCT VALUE ── -->
+    <section id="customers" class="section">
+      <div class="section-header">
+        <h2>👥 Product Value Analysis</h2>
+        <span class="section-tag">Rating tiers, revenue tiers &amp; top products</span>
+      </div>
+
+      <div class="cards-row">
+        <div class="card flex-1">
+          <div class="card-header"><h3>Rating Tiers</h3></div>
+          <div class="chart-container" style="height:300px">
+            <canvas id="segmentDonut"></canvas>
+          </div>
+        </div>
+        <div class="card flex-1">
+          <div class="card-header">
+            <h3>Rating Tier Revenue Metrics</h3>
+            <span class="card-tag">Avg Revenue &amp; Units per Tier</span>
+          </div>
+          <div class="chart-container" style="height:300px">
+            <canvas id="segmentMetricsChart"></canvas>
+          </div>
+        </div>
+        <div class="card flex-1">
+          <div class="card-header">
+            <h3>Product Revenue Tiers</h3>
+            <span class="card-tag">High / Mid / Low</span>
+          </div>
+          <div class="chart-container" style="height:300px">
+            <canvas id="tierChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="card full-width">
+        <div class="card-header">
+          <h3>🏆 Top 10 Products by Revenue</h3>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table" id="topCustomersTable">
+            <thead>
+              <tr><th>#</th><th>Product</th><th>Category</th><th>Rating</th><th>Revenue</th><th>Profit</th><th>Units Sold</th></tr>
+            </thead>
+            <tbody id="topCustomersTbody">
+              <tr><td colspan="7" class="loading-cell">Loading…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── CITY PERFORMANCE ── -->
+    <section id="geography" class="section">
+      <div class="section-header">
+        <h2>🌆 City Performance</h2>
+        <span class="section-tag">Top cities by revenue</span>
+      </div>
+      <div class="cards-row">
+        <div class="card flex-1">
+          <div class="card-header"><h3>Revenue by Category</h3></div>
+          <div class="chart-container" style="height:320px">
+            <canvas id="regionChart"></canvas>
+          </div>
+        </div>
+        <div class="card flex-2">
+          <div class="card-header"><h3>Top 15 Cities by Revenue</h3></div>
+          <div class="chart-container" style="height:320px">
+            <canvas id="stateChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── DISCOUNT ANALYSIS ── -->
+    <section id="shipping" class="section">
+      <div class="section-header">
+        <h2>🏷️ Discount Analysis</h2>
+        <span class="section-tag">Discount band distribution &amp; impact</span>
+      </div>
+      <div class="cards-row">
+        <div class="card flex-1">
+          <div class="card-header"><h3>Products by Discount Band</h3></div>
+          <div class="chart-container" style="height:300px">
+            <canvas id="shipDonut"></canvas>
+          </div>
+        </div>
+        <div class="card flex-1">
+          <div class="card-header"><h3>Revenue by Discount Band</h3></div>
+          <div class="chart-container" style="height:300px">
+            <canvas id="shipSalesChart"></canvas>
+          </div>
+        </div>
+        <div class="card flex-1">
+          <div class="card-header"><h3>Avg Rating by Discount Band</h3></div>
+          <div class="chart-container" style="height:300px">
+            <canvas id="shipDaysChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── INSIGHTS ── -->
+    <section id="insights" class="section">
+      <div class="section-header">
+        <h2>✨ Business Insights</h2>
+        <span class="section-tag">AI-driven recommendations</span>
+      </div>
+      <div class="insights-grid" id="insightsGrid">
+        <div class="insight-loading">Generating insights…</div>
+      </div>
+    </section>
+
+  </div><!-- /sections-wrapper -->
+</main>
+
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner-ring"></div>
+  <div class="loading-brand">
+    <span>E</span><span>c</span><span>o</span><span>m</span><span>S</span><span>t</span><span>o</span><span>r</span><span>e</span>
+  </div>
+  <p>Loading your dashboard…</p>
+</div>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>

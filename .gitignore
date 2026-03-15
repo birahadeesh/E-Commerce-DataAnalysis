@@ -1,0 +1,26 @@
+# Environment variables
+.env
+.flaskenv
+
+# Python compilation files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environments
+venv/
+env/
+.venv/
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# MacOS
+.DS_Store
+
+# Data files (optional, depending on if you want the CSV in source control)
+# If the dataset is large or private, uncomment the line below:
+# ecommerce_product_dataset.csv
